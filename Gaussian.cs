@@ -2,6 +2,8 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+
 
 namespace Gaussian
 {
@@ -21,6 +23,7 @@ namespace Gaussian
                 ImageLockMode.ReadWrite,
                 bitmap.PixelFormat
             );
+            int stride = bmpData.Stride;
             int bytes = Math.Abs(bmpData.Stride) * bmpData.Height;
             byte[] src = new byte[bytes];
             Marshal.Copy(bmpData.Scan0, src, 0, bytes);
@@ -31,12 +34,10 @@ namespace Gaussian
 
             double[] distribution = Distribution(sigma, radial);
 
+            int height = bitmap.Height;
             for (int x = 0; x < bmpData.Stride; x++)
             {
-                for (int y = 0; y < bitmap.Height; y++)
-                {
-                    Convolve(src, dst, distribution, bmpData.Stride, x, y, numChannels, radial);
-                }
+                Parallel.For(0, height, y => Convolve(src, dst, distribution, stride, height, x, y, numChannels, radial));
             }
 
             Bitmap output = new Bitmap(bitmap.Width, bitmap.Height);
@@ -51,7 +52,7 @@ namespace Gaussian
             return output;
         }
 
-        public void Convolve(byte[] src, byte[] dst, double[] distribution, int stride, int x, int y, int numChan, int radial)
+        public void Convolve(byte[] src, byte[] dst, double[] distribution, int stride, int height, int x, int y, int numChan, int radial)
         {
             double value = 0.0;
             double totalWeight = 0.0;
@@ -64,7 +65,7 @@ namespace Gaussian
                     // Convolve should only target the same channel on each pixel
                     int targetX = x + offX * numChan;
                     int targetY = y + offY;
-                    if (targetX >= 0 && targetX < stride && targetY >= 0 && targetY < bitmap.Height)
+                    if (targetX >= 0 && targetX < stride && targetY >= 0 && targetY < height)
                     {
                         value += weight * src[targetY * stride + targetX];
                         totalWeight += weight;
