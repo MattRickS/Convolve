@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace Gaussian
 {
-    class Gaussian
+    class Convolve
     {
         private Bitmap bitmap;
 
-        public Gaussian(Bitmap bitmap)
+        public Convolve(Bitmap bitmap)
         {
             this.bitmap = bitmap;
         }
 
-        public Bitmap Process(double sigma, int radial)
+        public Bitmap Process(double[,] distribution)
         {
             // Extract the bitmap to a 1D byte array, determine the number of channels
             BitmapData bmpData = bitmap.LockBits(
@@ -32,15 +32,16 @@ namespace Gaussian
             Marshal.Copy(bmpData.Scan0, src, 0, bytes);
             bitmap.UnlockBits(bmpData);
 
-            // Calculate the gaussian distribution outside of the loop
-            double[] distribution = Distribution(sigma, radial);
-
-            // Run the convolution
+            // Run the convolution on each channel of each pixel
             int height = bitmap.Height;
             Parallel.For(0, height, y =>
-            {
-                Parallel.For(0, stride, x => Convolve(src, dst, distribution, stride, height, numChannels, x, y, radial));
-            });
+                {
+                    for (int x = 0; x < stride; x++)
+                    {
+                        Apply(src, dst, distribution, stride, height, numChannels, x, y);
+                    }
+                }
+            );
 
             // Copy the output into a new bitmap
             Bitmap output = new Bitmap(bitmap.Width, bitmap.Height);
@@ -55,19 +56,23 @@ namespace Gaussian
             return output;
         }
 
-        public void Convolve(byte[] src, byte[] dst, double[] distribution, int stride, int height, int numChan, int x, int y, int radial)
+        private void Apply(byte[] src, byte[] dst, double[,] distribution, int stride, int height, int numChan, int x, int y)
         {
+            int dHeight = distribution.GetLength(0);
+            int dWidth = distribution.GetLength(1);
+            int midY = (dHeight - 1) / 2;
+            int midX = (dWidth - 1) / 2;
+
             double value = 0.0;
             double totalWeight = 0.0;
-            int distributionWidth = radial * 2 + 1;
-            for (int offX = -radial; offX <= radial; offX++)
+            for (int offY = 0; offY < dHeight; offY++)
             {
-                for (int offY = -radial; offY <= radial; offY++)
+                for (int offX = 0; offX < dWidth; offX++)
                 {
-                    double weight = distribution[distributionWidth * (offY + radial) + offX + radial];
+                    double weight = distribution[offY, offX];
                     // Convolve should only target the same channel on each pixel
-                    int targetX = x + offX * numChan;
-                    int targetY = y + offY;
+                    int targetX = x + (offX - midX) * numChan;
+                    int targetY = y + (offY - midY);
                     if (targetX >= 0 && targetX < stride && targetY >= 0 && targetY < height)
                     {
                         value += weight * src[targetY * stride + targetX];
@@ -76,27 +81,6 @@ namespace Gaussian
                 }
             }
             dst[y * stride + x] = (byte)(value / totalWeight);
-        }
-
-        public double[] Distribution(double sigma, int radial)
-        {
-            int width = radial * 2 + 1;
-            double[] distribution = new double[width * width];
-            for (int y = -radial; y <= radial; y++)
-            {
-                for (int x = -radial; x <= radial; x++)
-                {
-                    distribution[(y + radial) * width + x + radial] = GaussianFilter(sigma, x, y);
-                }
-            }
-            return distribution;
-        }
-
-        public double GaussianFilter(double sigma, int x, int y)
-        {
-
-            double pow = (x * x + y * y) / (2 * sigma * sigma);
-            return (1.0 / (2 * Math.PI * sigma * sigma)) * Math.Pow(Math.E, -pow);
         }
     }
 }
