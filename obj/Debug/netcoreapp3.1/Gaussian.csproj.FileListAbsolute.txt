@@ -1,0 +1,17 @@
+D:\Programming\csharp\Gaussian\bin\Debug\netcoreapp3.1\Gaussian.exe
+D:\Programming\csharp\Gaussian\bin\Debug\netcoreapp3.1\Gaussian.deps.json
+D:\Programming\csharp\Gaussian\bin\Debug\netcoreapp3.1\Gaussian.runtimeconfig.json
+D:\Programming\csharp\Gaussian\bin\Debug\netcoreapp3.1\Gaussian.runtimeconfig.dev.json
+D:\Programming\csharp\Gaussian\bin\Debug\netcoreapp3.1\Gaussian.dll
+D:\Programming\csharp\Gaussian\bin\Debug\netcoreapp3.1\Gaussian.pdb
+D:\Programming\csharp\Gaussian\bin\Debug\netcoreapp3.1\Microsoft.Win32.SystemEvents.dll
+D:\Programming\csharp\Gaussian\bin\Debug\netcoreapp3.1\System.Drawing.Common.dll
+D:\Programming\csharp\Gaussian\bin\Debug\netcoreapp3.1\runtimes\win\lib\netcoreapp3.0\Microsoft.Win32.SystemEvents.dll
+D:\Programming\csharp\Gaussian\bin\Debug\netcoreapp3.1\runtimes\unix\lib\netcoreapp3.0\System.Drawing.Common.dll
+D:\Programming\csharp\Gaussian\bin\Debug\netcoreapp3.1\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll
+D:\Programming\csharp\Gaussian\obj\Debug\netcoreapp3.1\Gaussian.csprojAssemblyReference.cache
+D:\Programming\csharp\Gaussian\obj\Debug\netcoreapp3.1\Gaussian.AssemblyInfoInputs.cache
+D:\Programming\csharp\Gaussian\obj\Debug\netcoreapp3.1\Gaussian.AssemblyInfo.cs
+D:\Programming\csharp\Gaussian\obj\Debug\netcoreapp3.1\Gaussian.csproj.CopyComplete
+D:\Programming\csharp\Gaussian\obj\Debug\netcoreapp3.1\Gaussian.dll
+D:\Programming\csharp\Gaussian\obj\Debug\netcoreapp3.1\Gaussian.pdb
