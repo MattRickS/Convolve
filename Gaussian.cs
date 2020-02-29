@@ -8,15 +8,13 @@ namespace Gaussian
     class Gaussian
     {
         private Bitmap bitmap;
-        private double sigma;
 
         public Gaussian(Bitmap bitmap)
         {
             this.bitmap = bitmap;
-            this.sigma = 3.0;
         }
 
-        public Bitmap Process(int radial)
+        public Bitmap Process(double sigma, int radial)
         {
             BitmapData bmpData = bitmap.LockBits(
                 new Rectangle(0, 0, bitmap.Width, bitmap.Height),
@@ -31,7 +29,7 @@ namespace Gaussian
             int numChannels = bmpData.Stride / bitmap.Width;
             byte[] dst = new byte[bytes];
 
-            double[] distribution = Distribution(radial);
+            double[] distribution = Distribution(sigma, radial);
 
             for (int x = 0; x < bmpData.Stride; x++)
             {
@@ -53,7 +51,7 @@ namespace Gaussian
             return output;
         }
 
-        public void Convolve(byte[] src, byte[] dst, double[] distribution, int stride, int currX, int currY, int numChan, int radial)
+        public void Convolve(byte[] src, byte[] dst, double[] distribution, int stride, int x, int y, int numChan, int radial)
         {
             double value = 0.0;
             double totalWeight = 0.0;
@@ -63,22 +61,20 @@ namespace Gaussian
                 for (int offY = -radial; offY <= radial; offY++)
                 {
                     double weight = distribution[distributionWidth * (offY + radial) + offX + radial];
-                    int targetX = currX + offX * numChan;
-                    int targetY = currY + offY;
+                    // Convolve should only target the same channel on each pixel
+                    int targetX = x + offX * numChan;
+                    int targetY = y + offY;
                     if (targetX >= 0 && targetX < stride && targetY >= 0 && targetY < bitmap.Height)
                     {
-                        // Only targets first channel - would have to iterate over all channels then to get each one
                         value += weight * src[targetY * stride + targetX];
                         totalWeight += weight;
                     }
                 }
             }
-            int pixel = currY * stride + currX;
-            // Console.WriteLine($"Writing {currX}, {currY} = {pixel}");
-            dst[pixel] = (byte)(value / totalWeight);
+            dst[y * stride + x] = (byte)(value / totalWeight);
         }
 
-        public double[] Distribution(int radial)
+        public double[] Distribution(double sigma, int radial)
         {
             int width = radial * 2 + 1;
             double[] distribution = new double[width * width];
@@ -86,19 +82,19 @@ namespace Gaussian
             {
                 for (int x = -radial; x <= radial; x++)
                 {
-                    distribution[(y + radial) * width + x + radial] = GaussianFilter(x, y);
+                    distribution[(y + radial) * width + x + radial] = GaussianFilter(sigma, x, y);
                 }
             }
             return distribution;
         }
 
-        public double GaussianFilter(int x)
+        public double GaussianFilter(double sigma, int x)
         {
             double pow = (x * x) / (2 * sigma * sigma);
             return (1.0 / Math.Sqrt(2 * Math.PI * sigma * sigma)) * Math.Pow(Math.E, -pow);
         }
 
-        public double GaussianFilter(int x, int y)
+        public double GaussianFilter(double sigma, int x, int y)
         {
 
             double pow = (x * x + y * y) / (2 * sigma * sigma);

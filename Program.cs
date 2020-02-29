@@ -8,14 +8,15 @@ namespace Gaussian
     {
         static void Main(string[] args)
         {
-            if (args.Length < 3)
+            if (args.Length < 4)
             {
-                throw new System.ArgumentException("Requires at least 3 arguments");
+                throw new System.ArgumentException("Invalid usage: src dst sigma radius");
             }
-            int radial = Int32.Parse(args[2]);
+            double sigma = Convert.ToDouble(args[2]);
+            int radial = Convert.ToInt32(args[3]);
             Bitmap bitmap = new Bitmap(args[0], true);
             Gaussian gaussian = new Gaussian(bitmap);
-            Bitmap blurredBitmap = gaussian.Process(radial);
+            Bitmap blurredBitmap = gaussian.Process(sigma, radial);
             blurredBitmap.Save(args[1]);
             Console.WriteLine("Done!");
         }
