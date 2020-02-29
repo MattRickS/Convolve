@@ -37,10 +37,10 @@ namespace Gaussian
 
             // Run the convolution
             int height = bitmap.Height;
-            for (int y = 0; y < height; y++)
+            Parallel.For(0, height, y =>
             {
                 Parallel.For(0, stride, x => Convolve(src, dst, distribution, stride, height, numChannels, x, y, radial));
-            }
+            });
 
             // Copy the output into a new bitmap
             Bitmap output = new Bitmap(bitmap.Width, bitmap.Height);
