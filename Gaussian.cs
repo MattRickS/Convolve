@@ -18,28 +18,31 @@ namespace Gaussian
 
         public Bitmap Process(double sigma, int radial)
         {
+            // Extract the bitmap to a 1D byte array, determine the number of channels
             BitmapData bmpData = bitmap.LockBits(
                 new Rectangle(0, 0, bitmap.Width, bitmap.Height),
                 ImageLockMode.ReadWrite,
                 bitmap.PixelFormat
             );
             int stride = bmpData.Stride;
+            int numChannels = bmpData.Stride / bitmap.Width;
             int bytes = Math.Abs(bmpData.Stride) * bmpData.Height;
             byte[] src = new byte[bytes];
+            byte[] dst = new byte[bytes];
             Marshal.Copy(bmpData.Scan0, src, 0, bytes);
             bitmap.UnlockBits(bmpData);
 
-            int numChannels = bmpData.Stride / bitmap.Width;
-            byte[] dst = new byte[bytes];
-
+            // Calculate the gaussian distribution outside of the loop
             double[] distribution = Distribution(sigma, radial);
 
+            // Run the convolution
             int height = bitmap.Height;
             for (int x = 0; x < bmpData.Stride; x++)
             {
-                Parallel.For(0, height, y => Convolve(src, dst, distribution, stride, height, x, y, numChannels, radial));
+                Parallel.For(0, height, y => Convolve(src, dst, distribution, stride, height, numChannels, x, y, radial));
             }
 
+            // Copy the output into a new bitmap
             Bitmap output = new Bitmap(bitmap.Width, bitmap.Height);
             bmpData = output.LockBits(
                 new Rectangle(0, 0, bitmap.Width, bitmap.Height),
@@ -52,7 +55,7 @@ namespace Gaussian
             return output;
         }
 
-        public void Convolve(byte[] src, byte[] dst, double[] distribution, int stride, int height, int x, int y, int numChan, int radial)
+        public void Convolve(byte[] src, byte[] dst, double[] distribution, int stride, int height, int numChan, int x, int y, int radial)
         {
             double value = 0.0;
             double totalWeight = 0.0;
@@ -87,12 +90,6 @@ namespace Gaussian
                 }
             }
             return distribution;
-        }
-
-        public double GaussianFilter(double sigma, int x)
-        {
-            double pow = (x * x) / (2 * sigma * sigma);
-            return (1.0 / Math.Sqrt(2 * Math.PI * sigma * sigma)) * Math.Pow(Math.E, -pow);
         }
 
         public double GaussianFilter(double sigma, int x, int y)
